@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 """
 Made with PyGame and Love
-special for geekBrainds
 """
 
 import os
