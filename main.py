@@ -242,7 +242,6 @@ class Enemy(pg.sprite.Sprite):
         time_passed = self.clock.tick()
         self.time_counter += time_passed
         self.time_direction_counter += time_passed
-        print(self.time_direction_counter)
         if self.time_counter > 650:
             move_step = random.randint(10, 30)
             if self.time_direction_counter > 2400:
