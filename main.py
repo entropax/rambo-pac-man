@@ -89,7 +89,6 @@ class Game():
             player_sprite.draw(self.root_window)
             enemy_sprites.draw(self.root_window)
             pg.display.update()
-            pg.display.flip()
 
             self.clock.tick(Game.FPS)
         pg.quit()
