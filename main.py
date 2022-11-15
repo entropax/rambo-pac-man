@@ -38,7 +38,6 @@ class Game():
                 Game.ROOT_WINDOW_SIZE,
                 pg.DOUBLEBUF | pg.HWSURFACE)
         pg.display.set_caption(f'Rembo-Pacman v.{Game.VERSION}')
-        pg.mouse.set_visible(False)
         self.run_state = False
 
         self.clock = pg.time.Clock()
@@ -61,6 +60,7 @@ class Game():
         Run main game loop
         '''
         self.run_state = True
+        pg.mouse.set_visible(False)
 
         player = RemboPacman()
         player_sprite = pg.sprite.Group()
