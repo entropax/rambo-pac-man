@@ -41,10 +41,10 @@ class Game():
         self.run_state = False
 
         self.clock = pg.time.Clock()
-        background_image = pg.image.load(
-                os.path.join(Game.DATA_DIR, 'background.png')).convert()
-        self.background = pg.transform.scale(
-                background_image, Game.ROOT_WINDOW_SIZE)
+        self.background = Game.scale_image(
+                pg.image.load(
+                    os.path.join(Game.DATA_DIR, 'background.png')).convert(),
+                    Game.ROOT_WINDOW_SIZE)
         self.font = pg.font.SysFont(None, 48)
         self.kill_counter = 0
 
