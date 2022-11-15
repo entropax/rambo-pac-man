@@ -55,9 +55,10 @@ class Game():
         self.run_state = True
 
         player = RemboPacman()
-        enemy_sprites = pg.sprite.Group()
         player_sprite = pg.sprite.Group()
         player_sprite.add(player)
+        enemy_sprites = pg.sprite.Group()
+        enemy_sprites.add([Enemy() for i in range(4)])
 
         while self.run_state:
             events = pg.event.get()
@@ -67,19 +68,13 @@ class Game():
 
             self.root_window.blit(self.background, (0, 0))
             player.handle_move()
-            if len(enemy_sprites) < 4:
-                enemy_sprites.add(Enemy())
             for enemy in enemy_sprites:
                 enemy.random_move()
                 if enemy.rect.colliderect(player):
                     enemy.kill()
+                    enemy_sprites.add(Enemy())
                     self.kill_counter += 1
-            self.root_window.blit(
-                    self.font.render(
-                        f'YOU KILL: {self.kill_counter}',
-                        True,
-                        'red'),
-                    (420, 32))
+            self.draw_kill_counter()
             enemy_sprites.update()
             player_sprite.update()
             player_sprite.draw(self.root_window)
@@ -89,6 +84,14 @@ class Game():
 
             self.clock.tick(Game.FPS)
         pg.quit()
+
+    def draw_kill_counter(self):
+        self.root_window.blit(
+                self.font.render(
+                    f'YOU KILL: {self.kill_counter}',
+                    True,
+                    'red'),
+                (420, 32))
 
     @classmethod
     def scale_image(cls, image: pg.Surface, size: tuple) -> pg.Surface:
