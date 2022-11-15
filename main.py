@@ -22,7 +22,7 @@ class Game():
             BORDER_OFFSET / 2,
             ROOT_WINDOW_SIZE[0] - BORDER_OFFSET,
             ROOT_WINDOW_SIZE[1] - BORDER_OFFSET)
-    FPS = 30
+    FPS = 20
 
     def __init__(self):
         '''
@@ -47,7 +47,7 @@ class Game():
         self.clock = pg.time.Clock()
         background_image = pg.image.load(
                 os.path.join(Game.DATA_DIR, 'background.png')).convert()
-        background_image.set_alpha(100)
+        # background_image.set_alpha(140)
         self.background = pg.transform.scale(
                 background_image, Game.ROOT_WINDOW_SIZE)
 
@@ -58,8 +58,10 @@ class Game():
         self.run_state = True
 
         player = RemboPacman()
+        enemies = Enemy()
         sprites = pg.sprite.Group()
         sprites.add(player)
+        sprites.add(enemies)
 
         while self.run_state:
             events = pg.event.get()
@@ -70,6 +72,7 @@ class Game():
             self.root_window.blit(self.background, (0,0))
             sprites.update()
             player.handle_move()
+            enemies.random_move()
             sprites.draw(self.root_window)
 
             pg.display.update()
@@ -106,72 +109,105 @@ class RemboPacman(pg.sprite.Sprite):
     Pacman!
     '''
 
-    speed = 10
-    images = []
-
     def __init__(self):
         super().__init__()
         self.size = (32,32)
         self.border_wall = Game.BORDER_WALL
         self.start_position = self.border_wall.center
+        self.animate_direction = 'right'
         self.right_move_frames = [
-                pg.image.load(os.path.join(
-                    Game.DATA_DIR, 'pacman_right_0.png')),
-                pg.image.load(os.path.join(
-                    Game.DATA_DIR, 'pacman_right_1.png')),
+                self.scale_image(pg.image.load(os.path.join(
+                    Game.DATA_DIR, 'pacman_right_0.png'))),
+                self.scale_image(pg.image.load(os.path.join(
+                    Game.DATA_DIR, 'pacman_right_1.png'))),
                 ]
         self.left_move_frames = [
-                pg.image.load(os.path.join(
-                    Game.DATA_DIR, 'pacman_left_0.png')),
-                pg.image.load(os.path.join(
-                    Game.DATA_DIR, 'pacman_left_1.png')),
+                self.scale_image(pg.image.load(os.path.join(
+                    Game.DATA_DIR, 'pacman_left_0.png'))),
+                self.scale_image(pg.image.load(os.path.join(
+                    Game.DATA_DIR, 'pacman_left_1.png'))),
                 ]
         self.image = self.right_move_frames[0]
-        self.image = pg.transform.scale(self.image, self.size)
         self.rect = self.image.get_rect(center=self.start_position)
 
-    def update_animation(self):
-        animation_interval = 20
-        self.frame = 0
+    def scale_image(self, image):
+        return pg.transform.scale(image, self.size)
+
+    def move_animation(self, direction):
+        if direction == 'right':
+            if self.image == self.right_move_frames[0]:
+                self.image = self.right_move_frames[1]
+            else:
+                self.image = self.right_move_frames[0]
+        if direction == 'left':
+            if self.image == self.left_move_frames[0]:
+                self.image = self.left_move_frames[1]
+            else:
+                self.image = self.left_move_frames[0]
 
     def handle_move(self):
         """ Movement keys """
-        move_step = 10
+        move_step = 5
         key_input = pg.key.get_pressed()
         if key_input[pg.K_RIGHT]:
             self.rect.move_ip(move_step, 0)
             self.rect.clamp_ip(self.border_wall)
+            if self.image in self.right_move_frames:
+                self.animate_direction = 'right'
+                self.move_animation(self.animate_direction)
+            else:
+                self.image = self.right_move_frames[0]
         if key_input[pg.K_DOWN]:
             self.rect.move_ip(0, move_step)
             self.rect.clamp_ip(self.border_wall)
+            self.move_animation(self.animate_direction)
         if key_input[pg.K_LEFT]:
             self.rect.move_ip(-move_step, 0)
             self.rect.clamp_ip(self.border_wall)
+            if self.image in self.left_move_frames:
+                self.animate_direction = 'left'
+                self.move_animation(self.animate_direction)
+            else:
+                self.image = self.left_move_frames[0]
         if key_input[pg.K_UP]:
             self.rect.move_ip(0, -move_step)
             self.rect.clamp_ip(self.border_wall)
+            self.move_animation(self.animate_direction)
 
 
 class Enemy(pg.sprite.Sprite):
     def __init__(self):
-        size = (32, 32)
+        super().__init__()
+        self.size = (random.randint(20, 40), random.randint(20,40))
+        self.border_wall = Game.BORDER_WALL
+        self.start_position = (random.randint(32, 600), random.randint(32, 600))
+        self.right_image = self.scale_image(pg.image.load(os.path.join(
+                    Game.DATA_DIR, 'creep_right.png')))
+        self.left_image = self.scale_image(pg.image.load(os.path.join(
+                    Game.DATA_DIR, 'creep_left.png')))
+        self.image = self.right_image
+        self.rect = self.image.get_rect(center=self.start_position)
 
-    def move(self):
+    def scale_image(self, image):
+        return pg.transform.scale(image, self.size)
+
+    def random_move(self):
         """ Creeps random move """
-        move_step = 10
-        direction = 0
-        if key_input[pg.K_RIGHT]:
-            if self.rect.x < Game.ROOT_WINDOW_SIZE[0] - self.size[0]:
-                self.rect.x += move_step
-        if key_input[pg.K_DOWN]:
-            if self.rect.y < Game.ROOT_WINDOW_SIZE[1] - self.size[0]:
-                self.rect.y += move_step
-        if key_input[pg.K_LEFT]:
-            if self.rect.x > 0:
-                self.rect.x -= move_step
-        if key_input[pg.K_UP]:
-            if self.rect.y > 0:
-                self.rect.y -= move_step
+        move_step = random.randint(5,10)
+        direction = random.choice(['up', 'right', 'down', 'left'])
+        match direction:
+            case 'up':
+                self.rect.move_ip(0, move_step)
+                self.rect.clamp_ip(self.border_wall)
+            case 'right':
+                self.rect.move_ip(move_step, 0)
+                self.rect.clamp_ip(self.border_wall)
+            case 'down':
+                self.rect.move_ip(0, -move_step)
+                self.rect.clamp_ip(self.border_wall)
+            case 'left':
+                self.rect.move_ip(-move_step, 0)
+                self.rect.clamp_ip(self.border_wall)
 
 # this calls the 'main' function when this script is executed
 if __name__ == "__main__":
