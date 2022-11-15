@@ -8,7 +8,7 @@
 <!-- [_TOC_] -->
 - [Description](#description)
 - [Install](#install)
-- [Usage](#usage)
+- [Usage](#run)
 - [Note](#note)
 
 ## Description ##
@@ -38,6 +38,7 @@
 ## Install ##
 <br>
 **To install run one of these block in terminal emulator on Linux-machine**
+
 - get this repo
 ```sh
 git clone https://github.com/entropax/rambo-pac-man && \
