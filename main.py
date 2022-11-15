@@ -250,12 +250,14 @@ class Enemy(pg.sprite.Sprite):
                     self.rect.move_ip(0, move_step)
                     self.rect.clamp_ip(self.border_wall)
                 case 'right':
+                    self.image = self.right_image
                     self.rect.move_ip(move_step, 0)
                     self.rect.clamp_ip(self.border_wall)
                 case 'down':
                     self.rect.move_ip(0, -move_step)
                     self.rect.clamp_ip(self.border_wall)
                 case 'left':
+                    self.image = self.left_image
                     self.rect.move_ip(-move_step, 0)
                     self.rect.clamp_ip(self.border_wall)
             self.time_counter = 0
