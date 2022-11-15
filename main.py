@@ -221,6 +221,7 @@ class Enemy(pg.sprite.Sprite):
         super().__init__()
         self.clock = pg.time.Clock()
         self.time_counter = 0
+        self.time_direction_counter = 0
         self.size = (random.randint(20, 40), random.randint(20, 40))
         self.border_wall = Game.BORDER_WALL
         self.start_position = (
@@ -234,14 +235,20 @@ class Enemy(pg.sprite.Sprite):
                 self.size)
         self.image = self.right_image
         self.rect = self.image.get_rect(center=self.start_position)
+        self.direction = random.choice(['up', 'right', 'down', 'left'])
 
     def random_move(self) -> None:
         """ Creeps random move """
-        self.time_counter += self.clock.tick()
+        time_passed = self.clock.tick()
+        self.time_counter += time_passed
+        self.time_direction_counter += time_passed
+        print(self.time_direction_counter)
         if self.time_counter > 650:
             move_step = random.randint(10, 30)
-            direction = random.choice(['up', 'right', 'down', 'left'])
-            match direction:
+            if self.time_direction_counter > 2400:
+                self.direction = random.choice(['up', 'right', 'down', 'left'])
+                self.time_direction_counter = 0
+            match self.direction:
                 case 'up':
                     self.rect.move_ip(0, move_step)
                     self.rect.clamp_ip(self.border_wall)
