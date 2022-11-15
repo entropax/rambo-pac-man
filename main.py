@@ -40,7 +40,6 @@ class Game():
         pg.display.set_caption(f'Rembo-Pacman v.{Game.VERSION}')
         pg.mouse.set_visible(False)
         self.run_state = False
-        self.screen = None
 
         self.clock = pg.time.Clock()
         background_image = pg.image.load(
