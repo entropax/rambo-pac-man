@@ -36,7 +36,7 @@ class Game():
             pg.font = None
         self.root_window = pg.display.set_mode(
                 Game.ROOT_WINDOW_SIZE,
-                pg.DOUBLEBUF)
+                pg.DOUBLEBUF | pg.HWSURFACE)
         pg.display.set_caption(f'Rembo-Pacman v.{Game.VERSION}')
         pg.mouse.set_visible(False)
         self.run_state = False
@@ -128,10 +128,10 @@ class Game():
     def draw_kill_counter(self):
         self.root_window.blit(
                 self.font.render(
-                    f'YOU KILL: {self.kill_counter}',
+                    f'Kills: {self.kill_counter}',
                     True,
                     'red'),
-                (420, 32))
+                (490, 32))
 
     @classmethod
     def scale_image(cls, image: pg.Surface, size: tuple) -> pg.Surface:
