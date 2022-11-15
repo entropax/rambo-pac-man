@@ -12,7 +12,7 @@ class Game():
     '''
     Our game logic
     '''
-    VERSION = 0.1
+    VERSION = 0.2
     MAIN_DIR = os.path.split(os.path.abspath(__file__))[0]
     DATA_DIR = os.path.join(MAIN_DIR, 'sources')
     ROOT_WINDOW_SIZE = (640, 640)
@@ -47,21 +47,22 @@ class Game():
         self.clock = pg.time.Clock()
         background_image = pg.image.load(
                 os.path.join(Game.DATA_DIR, 'background.png')).convert()
-        # background_image.set_alpha(140)
         self.background = pg.transform.scale(
                 background_image, Game.ROOT_WINDOW_SIZE)
+        self.font = pg.font.SysFont(None, 48)
+        self.kill_counter = 0
 
     def run(self):
         '''
         Run main game loop
         '''
         self.run_state = True
+        elapsed_time = pg.time.get_ticks()
 
         player = RemboPacman()
-        enemies = Enemy()
-        sprites = pg.sprite.Group()
-        sprites.add(player)
-        sprites.add(enemies)
+        enemy_sprites = pg.sprite.Group()
+        player_sprite = pg.sprite.Group()
+        player_sprite.add(player)
 
         while self.run_state:
             events = pg.event.get()
@@ -70,11 +71,24 @@ class Game():
                     self.run_state = False
 
             self.root_window.blit(self.background, (0,0))
-            sprites.update()
             player.handle_move()
-            enemies.random_move()
-            sprites.draw(self.root_window)
-
+            if len(enemy_sprites) < 4:
+                enemy_sprites.add(Enemy())
+            for enemy in enemy_sprites:
+                enemy.random_move()
+                if enemy.rect.colliderect(player):
+                    enemy.kill()
+                    self.kill_counter += 1
+            self.root_window.blit(
+                    self.font.render(
+                        f'YOU KILL: {self.kill_counter}',
+                        True,
+                        'red'),
+                    (420,32))
+            enemy_sprites.update()
+            player_sprite.update()
+            player_sprite.draw(self.root_window)
+            enemy_sprites.draw(self.root_window)
             pg.display.update()
             pg.display.flip()
 
@@ -178,6 +192,8 @@ class RemboPacman(pg.sprite.Sprite):
 class Enemy(pg.sprite.Sprite):
     def __init__(self):
         super().__init__()
+        self.clock = pg.time.Clock()
+        self.time_counter = 0
         self.size = (random.randint(20, 40), random.randint(20,40))
         self.border_wall = Game.BORDER_WALL
         self.start_position = (random.randint(32, 600), random.randint(32, 600))
@@ -193,21 +209,25 @@ class Enemy(pg.sprite.Sprite):
 
     def random_move(self):
         """ Creeps random move """
-        move_step = random.randint(5,10)
-        direction = random.choice(['up', 'right', 'down', 'left'])
-        match direction:
-            case 'up':
-                self.rect.move_ip(0, move_step)
-                self.rect.clamp_ip(self.border_wall)
-            case 'right':
-                self.rect.move_ip(move_step, 0)
-                self.rect.clamp_ip(self.border_wall)
-            case 'down':
-                self.rect.move_ip(0, -move_step)
-                self.rect.clamp_ip(self.border_wall)
-            case 'left':
-                self.rect.move_ip(-move_step, 0)
-                self.rect.clamp_ip(self.border_wall)
+        self.time_counter += self.clock.tick()
+        if self.time_counter > 650:
+            move_step = random.randint(10, 30)
+            direction = random.choice(['up', 'right', 'down', 'left'])
+            match direction:
+                case 'up':
+                    self.rect.move_ip(0, move_step)
+                    self.rect.clamp_ip(self.border_wall)
+                case 'right':
+                    self.rect.move_ip(move_step, 0)
+                    self.rect.clamp_ip(self.border_wall)
+                case 'down':
+                    self.rect.move_ip(0, -move_step)
+                    self.rect.clamp_ip(self.border_wall)
+                case 'left':
+                    self.rect.move_ip(-move_step, 0)
+                    self.rect.clamp_ip(self.border_wall)
+            self.time_counter = 0
+
 
 # this calls the 'main' function when this script is executed
 if __name__ == "__main__":
