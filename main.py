@@ -4,8 +4,10 @@ This game made with PyGame and Love
 """
 
 import os
+import sys
 import random
 import pygame as pg
+import pygame_menu as pg_menu
 
 
 class Game():
@@ -50,6 +52,13 @@ class Game():
 
     def run(self) -> None:
         '''
+        Run menu before main game, look at run_game()
+        '''
+        menu = self.create_menu()
+        menu.mainloop(self.root_window)
+
+    def run_game(self) -> None:
+        '''
         Run main game loop
         '''
         self.run_state = True
@@ -65,6 +74,7 @@ class Game():
             for event in events:
                 if event.type == pg.QUIT:
                     self.run_state = False
+                    sys.exit()
 
             self.root_window.blit(self.background, (0, 0))
             player.handle_move()
@@ -84,6 +94,38 @@ class Game():
 
             self.clock.tick(Game.FPS)
         pg.quit()
+
+    def create_menu(self) -> pg_menu.Menu:
+        '''
+        Create simple game menu with help
+        '''
+        keybord_help = '''
+            Help:
+            Use arrow keys (up, down, left, right)
+            for control your Pac-Man.
+            You can only eat creeps
+            '''
+        menu = pg_menu.Menu(
+                'Welcome to Rambo-Pac-Man',
+                640,
+                640,
+                theme=pg_menu.themes.THEME_SOLARIZED)
+        menu.add.text_input('Hit your Name :', default=' Mr.Gamer')
+        menu.add.vertical_margin(20)
+        menu.add.button('Play', self.run_game)
+        menu.add.button('Quit', pg_menu.events.EXIT)
+        menu.add.vertical_margin(20)
+        menu.add.selector('Difficulty :', [('Hard NotImplemented other', 1)])
+        menu.add.vertical_margin(20)
+        menu.add.clock()
+        menu.add.vertical_margin(20)
+        menu.add.table('lol')
+        menu.add.label(
+                keybord_help,
+                max_char=-1,
+                font_size=24,
+                align=pg_menu.locals.ALIGN_LEFT)
+        return menu
 
     def draw_kill_counter(self):
         self.root_window.blit(
