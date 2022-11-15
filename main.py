@@ -10,9 +10,9 @@ import pygame as pg
 
 class Game():
     '''
-    Our game logic
+    Main game loop and parameters
     '''
-    VERSION = 0.2
+    VERSION = 0.3
     MAIN_DIR = os.path.split(os.path.abspath(__file__))[0]
     DATA_DIR = os.path.join(MAIN_DIR, 'sources')
     ROOT_WINDOW_SIZE = (640, 640)
@@ -22,20 +22,16 @@ class Game():
             BORDER_OFFSET / 2,
             ROOT_WINDOW_SIZE[0] - BORDER_OFFSET,
             ROOT_WINDOW_SIZE[1] - BORDER_OFFSET)
-    FPS = 20
+    FPS = 24
 
     def __init__(self):
         '''
-        Create our game
+        Initialize our game with some additions
         '''
         pg.init()
-
         if not pg.font:
             print("Warning, fonts disabled")
             pg.font = None
-        if not pg.mixer:
-            print("Warning, sound disabled")
-            pg.mixer = None
         self.root_window = pg.display.set_mode(
                 Game.ROOT_WINDOW_SIZE,
                 pg.DOUBLEBUF)
@@ -52,12 +48,11 @@ class Game():
         self.font = pg.font.SysFont(None, 48)
         self.kill_counter = 0
 
-    def run(self):
+    def run(self) -> None:
         '''
         Run main game loop
         '''
         self.run_state = True
-        elapsed_time = pg.time.get_ticks()
 
         player = RemboPacman()
         enemy_sprites = pg.sprite.Group()
@@ -70,7 +65,7 @@ class Game():
                 if event.type == pg.QUIT:
                     self.run_state = False
 
-            self.root_window.blit(self.background, (0,0))
+            self.root_window.blit(self.background, (0, 0))
             player.handle_move()
             if len(enemy_sprites) < 4:
                 enemy_sprites.add(Enemy())
@@ -84,7 +79,7 @@ class Game():
                         f'YOU KILL: {self.kill_counter}',
                         True,
                         'red'),
-                    (420,32))
+                    (420, 32))
             enemy_sprites.update()
             player_sprite.update()
             player_sprite.draw(self.root_window)
@@ -95,59 +90,43 @@ class Game():
             self.clock.tick(Game.FPS)
         pg.quit()
 
-    def load_image(file):
-        """loads an image, prepares it for play"""
-        file = os.path.join(main_dir, "data", file)
-        try:
-            surface = pg.image.load(file)
-        except pg.error:
-            raise SystemExit(f'Could not load image "{file}" {pg.get_error()}')
-        return surface.convert()
-
-
-    def load_sound(file):
-        """because pygame can be be compiled without mixer."""
-        if not pg.mixer:
-            return None
-        file = os.path.join(main_dir, "data", file)
-        try:
-            sound = pg.mixer.Sound(file)
-            return sound
-        except pg.error:
-            print(f"Warning, unable to load, {file}")
-        return None
+    @classmethod
+    def scale_image(cls, image: pg.Surface, size: tuple) -> pg.Surface:
+        '''
+        Scaling image from any size
+        '''
+        return pg.transform.scale(image, size)
 
 
 class RemboPacman(pg.sprite.Sprite):
     '''
     Pacman!
     '''
-
     def __init__(self):
         super().__init__()
-        self.size = (32,32)
+        self.size = (32, 32)
         self.border_wall = Game.BORDER_WALL
         self.start_position = self.border_wall.center
         self.animate_direction = 'right'
         self.right_move_frames = [
-                self.scale_image(pg.image.load(os.path.join(
-                    Game.DATA_DIR, 'pacman_right_0.png'))),
-                self.scale_image(pg.image.load(os.path.join(
-                    Game.DATA_DIR, 'pacman_right_1.png'))),
+                Game.scale_image(pg.image.load(os.path.join(
+                    Game.DATA_DIR, 'pacman_right_0.png')), self.size),
+                Game.scale_image(pg.image.load(os.path.join(
+                    Game.DATA_DIR, 'pacman_right_1.png')), self.size),
                 ]
         self.left_move_frames = [
-                self.scale_image(pg.image.load(os.path.join(
-                    Game.DATA_DIR, 'pacman_left_0.png'))),
-                self.scale_image(pg.image.load(os.path.join(
-                    Game.DATA_DIR, 'pacman_left_1.png'))),
+                Game.scale_image(pg.image.load(os.path.join(
+                    Game.DATA_DIR, 'pacman_left_0.png')), self.size),
+                Game.scale_image(pg.image.load(os.path.join(
+                    Game.DATA_DIR, 'pacman_left_1.png')), self.size),
                 ]
         self.image = self.right_move_frames[0]
         self.rect = self.image.get_rect(center=self.start_position)
 
-    def scale_image(self, image):
-        return pg.transform.scale(image, self.size)
-
-    def move_animation(self, direction):
+    def move_animation(self, direction) -> None:
+        '''
+        Not the best way for animate move but the most fastest
+        '''
         if direction == 'right':
             if self.image == self.right_move_frames[0]:
                 self.image = self.right_move_frames[1]
@@ -159,7 +138,7 @@ class RemboPacman(pg.sprite.Sprite):
             else:
                 self.image = self.left_move_frames[0]
 
-    def handle_move(self):
+    def handle_move(self) -> None:
         """ Movement keys """
         move_step = 5
         key_input = pg.key.get_pressed()
@@ -190,24 +169,28 @@ class RemboPacman(pg.sprite.Sprite):
 
 
 class Enemy(pg.sprite.Sprite):
+    '''
+    Passive enemy class. Can only be eating by player
+    '''
     def __init__(self):
         super().__init__()
         self.clock = pg.time.Clock()
         self.time_counter = 0
-        self.size = (random.randint(20, 40), random.randint(20,40))
+        self.size = (random.randint(20, 40), random.randint(20, 40))
         self.border_wall = Game.BORDER_WALL
-        self.start_position = (random.randint(32, 600), random.randint(32, 600))
-        self.right_image = self.scale_image(pg.image.load(os.path.join(
-                    Game.DATA_DIR, 'creep_right.png')))
-        self.left_image = self.scale_image(pg.image.load(os.path.join(
-                    Game.DATA_DIR, 'creep_left.png')))
+        self.start_position = (
+                random.randint(32, 600),
+                random.randint(32, 600))
+        self.right_image = Game.scale_image(
+                pg.image.load(os.path.join(Game.DATA_DIR, 'creep_right.png')),
+                self.size)
+        self.left_image = Game.scale_image(
+                pg.image.load(os.path.join(Game.DATA_DIR, 'creep_left.png')),
+                self.size)
         self.image = self.right_image
         self.rect = self.image.get_rect(center=self.start_position)
 
-    def scale_image(self, image):
-        return pg.transform.scale(image, self.size)
-
-    def random_move(self):
+    def random_move(self) -> None:
         """ Creeps random move """
         self.time_counter += self.clock.tick()
         if self.time_counter > 650:
