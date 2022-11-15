@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Made with PyGame and Love
+This game made with PyGame and Love
 """
 
 import os
@@ -12,9 +12,16 @@ class Game():
     '''
     Our game logic
     '''
+    VERSION = 0.1
     MAIN_DIR = os.path.split(os.path.abspath(__file__))[0]
     DATA_DIR = os.path.join(MAIN_DIR, 'sources')
     ROOT_WINDOW_SIZE = (640, 640)
+    BORDER_OFFSET = 32
+    BORDER_WALL = pg.Rect(
+            BORDER_OFFSET / 2,
+            BORDER_OFFSET / 2,
+            ROOT_WINDOW_SIZE[0] - BORDER_OFFSET,
+            ROOT_WINDOW_SIZE[1] - BORDER_OFFSET)
     FPS = 30
 
     def __init__(self):
@@ -22,10 +29,17 @@ class Game():
         Create our game
         '''
         pg.init()
+
+        if not pg.font:
+            print("Warning, fonts disabled")
+            pg.font = None
+        if not pg.mixer:
+            print("Warning, sound disabled")
+            pg.mixer = None
         self.root_window = pg.display.set_mode(
                 Game.ROOT_WINDOW_SIZE,
                 pg.DOUBLEBUF)
-        pg.display.set_caption('Rembo-Pacman')
+        pg.display.set_caption(f'Rembo-Pacman v.{Game.VERSION}')
         pg.mouse.set_visible(False)
         self.run_state = False
         self.screen = None
@@ -42,13 +56,9 @@ class Game():
         Run main game loop
         '''
         self.run_state = True
-        if not pg.font:
-            print("Warning, fonts disabled")
-        if not pg.mixer:
-            print("Warning, sound disabled")
 
-        sprites = pg.sprite.Group()
         player = RemboPacman()
+        sprites = pg.sprite.Group()
         sprites.add(player)
 
         while self.run_state:
@@ -58,33 +68,98 @@ class Game():
                     self.run_state = False
 
             self.root_window.blit(self.background, (0,0))
+            sprites.update()
             player.handle_move()
             sprites.draw(self.root_window)
+
+            pg.display.update()
             pg.display.flip()
+
             self.clock.tick(Game.FPS)
         pg.quit()
 
+    def load_image(file):
+        """loads an image, prepares it for play"""
+        file = os.path.join(main_dir, "data", file)
+        try:
+            surface = pg.image.load(file)
+        except pg.error:
+            raise SystemExit(f'Could not load image "{file}" {pg.get_error()}')
+        return surface.convert()
+
+
+    def load_sound(file):
+        """because pygame can be be compiled without mixer."""
+        if not pg.mixer:
+            return None
+        file = os.path.join(main_dir, "data", file)
+        try:
+            sound = pg.mixer.Sound(file)
+            return sound
+        except pg.error:
+            print(f"Warning, unable to load, {file}")
+        return None
+
 
 class RemboPacman(pg.sprite.Sprite):
+    '''
+    Pacman!
+    '''
+
+    speed = 10
+    images = []
+
     def __init__(self):
         super().__init__()
         self.size = (32,32)
-        self.start_position = [i/2 for i in Game.ROOT_WINDOW_SIZE]
-        self.image = pg.image.load(
-                os.path.join(Game.DATA_DIR, 'pacman_left_0.png')).convert_alpha()
+        self.border_wall = Game.BORDER_WALL
+        self.start_position = self.border_wall.center
+        self.right_move_frames = [
+                pg.image.load(os.path.join(
+                    Game.DATA_DIR, 'pacman_right_0.png')),
+                pg.image.load(os.path.join(
+                    Game.DATA_DIR, 'pacman_right_1.png')),
+                ]
+        self.left_move_frames = [
+                pg.image.load(os.path.join(
+                    Game.DATA_DIR, 'pacman_left_0.png')),
+                pg.image.load(os.path.join(
+                    Game.DATA_DIR, 'pacman_left_1.png')),
+                ]
+        self.image = self.right_move_frames[0]
         self.image = pg.transform.scale(self.image, self.size)
         self.rect = self.image.get_rect(center=self.start_position)
 
-        self.right_move_animation = []
-        self.left_move_animation = []
-
-    def load_images(self):
-        pass
+    def update_animation(self):
+        animation_interval = 20
+        self.frame = 0
 
     def handle_move(self):
         """ Movement keys """
         move_step = 10
         key_input = pg.key.get_pressed()
+        if key_input[pg.K_RIGHT]:
+            self.rect.move_ip(move_step, 0)
+            self.rect.clamp_ip(self.border_wall)
+        if key_input[pg.K_DOWN]:
+            self.rect.move_ip(0, move_step)
+            self.rect.clamp_ip(self.border_wall)
+        if key_input[pg.K_LEFT]:
+            self.rect.move_ip(-move_step, 0)
+            self.rect.clamp_ip(self.border_wall)
+        if key_input[pg.K_UP]:
+            self.rect.move_ip(0, -move_step)
+            self.rect.clamp_ip(self.border_wall)
+
+
+class Enemy(pg.sprite.Sprite):
+    def __init__(self):
+        size = (32, 32)
+
+    def move(self):
+        """ Creeps random move """
+        move_step = 10
+        direction = 0
         if key_input[pg.K_RIGHT]:
             if self.rect.x < Game.ROOT_WINDOW_SIZE[0] - self.size[0]:
                 self.rect.x += move_step
@@ -97,12 +172,6 @@ class RemboPacman(pg.sprite.Sprite):
         if key_input[pg.K_UP]:
             if self.rect.y > 0:
                 self.rect.y -= move_step
-
-
-class Enemy(pg.sprite.Sprite):
-    def __init__(self):
-        size = (32, 32)
-        pass
 
 # this calls the 'main' function when this script is executed
 if __name__ == "__main__":
