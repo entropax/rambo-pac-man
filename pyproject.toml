@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "rambo-pac-man"
+version = "0.2.0"
+description = "Simple Pac-man game with some Rambo feautures. Create with pygame and love."
+authors = ["Sol 'Entropax' Maxwell <sol@entropax.ru>"]
+license = "SOL LICENSE"
+readme = "README.md"
+packages = [{include = "rambo_pac_man"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pygame = "^2.1.2"
+pygame-menu = "^4.2.8"
+
+[tool.poetry.group.dev.dependencies]
+python = "^3.10"
+pygame = "^2.1.2"
+pylint = "^2.15.5"
+flake8 = "^5.0.4"
+neovim = "^0.3.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
