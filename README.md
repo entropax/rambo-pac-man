@@ -42,7 +42,7 @@
 - get this repo
 ```sh
 git clone https://github.com/entropax/rambo-pac-man && \
-cd rembo-pac-man
+cd rambo-pac-man
 ```
 - install with *venv* and *pip* requirements:
 ```sh
