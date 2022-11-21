@@ -48,6 +48,10 @@ class Game():
         self.font = pg.font.SysFont(None, 48)
         self.kill_counter = 0
 
+
+    def quit(self) -> None:
+        pass
+
     def run(self) -> None:
         '''
         Run menu before main game, look at run_game()
@@ -74,6 +78,7 @@ class Game():
                 if event.type == pg.QUIT:
                     self.run_state = False
                     sys.exit()
+                    self.quit()
 
             self.root_window.blit(self.background, (0, 0))
             player.handle_move()
